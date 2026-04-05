@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:peoplepro/models/e-canteen/meal_card_model.dart';
-import 'package:peoplepro/services/canteen_service.dart';
+import 'package:peoplepro/services/canteen_service2.dart';
+import 'package:peoplepro/utils/canteen_session.dart';
 import 'package:peoplepro/utils/colors.dart';
 import 'package:peoplepro/utils/settings.dart';
 import 'package:peoplepro/utils/utils.dart';
@@ -16,13 +16,12 @@ class MealCardScreen extends StatefulWidget {
 }
 
 class _MealCardScreenState extends State<MealCardScreen> {
-  List<MealCardModel> _mealCardItems = [];
+  List<MealCardResonse> _mealCardItems = [];
   int total = 0;
   int employee = 0;
   int guest = 0;
-  int driver = 0;
   int closedMeals = 0;
-  int holidaysWeekends = 0;
+  int kitchenOffWeekends = 0;
   bool isLoading = true;
   DateTime? _fromDate = Settings.serverToday;
   DateTime? _toDate = Settings.serverToday;
@@ -39,29 +38,29 @@ class _MealCardScreenState extends State<MealCardScreen> {
       total = 0;
       employee = 0;
       guest = 0;
-      driver = 0;
       closedMeals = 0;
-      holidaysWeekends = 0;
+      kitchenOffWeekends = 0;
     });
 
     try {
+      Utils.showLoadingIndicator(context);
       final fromDate = Utils.formatDate(_fromDate!, format: "yyyy-MM-dd");
       final toDate = Utils.formatDate(_toDate!, format: "yyyy-MM-dd");
-      _mealCardItems = await CanteenService.getMealCard(fromDate, toDate);
+      _mealCardItems = await CanteenService2.getMealCard(
+          CanteenSession.username, fromDate, toDate);
 
       for (var item in _mealCardItems) {
-        total += item.total!;
-        employee += item.employee!;
-        guest += item.guest!;
-        driver += item.driver!;
+        employee += item.mealCount;
+        guest += item.guestCount;
 
         if (item.statusText == 'C') {
           closedMeals++;
-        } else if (item.statusText == 'H' || item.statusText == 'W') {
-          holidaysWeekends++;
+        } else if (item.statusText == 'KO' || item.statusText == 'W') {
+          kitchenOffWeekends++;
         }
       }
     } finally {
+      Utils.hideLoadingIndicator(context);
       setState(() => isLoading = false);
     }
   }
@@ -79,7 +78,7 @@ class _MealCardScreenState extends State<MealCardScreen> {
 
     return Scaffold(
       body: BackgroundWidget(
-        title: "Meal Card Report",
+        title: "Meal Card",
         child: Column(
           children: [
             // Date Picker Section
@@ -99,7 +98,7 @@ class _MealCardScreenState extends State<MealCardScreen> {
             // Data Section
             Expanded(
               child: isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const Center()
                   : _mealCardItems.isEmpty
                       ? Center(
                           child: Text(
@@ -118,7 +117,6 @@ class _MealCardScreenState extends State<MealCardScreen> {
                             final item = _mealCardItems[index];
                             return _MealCardItem(
                               item: item,
-                              isDriverVisible: isDriverVisible,
                             );
                           },
                         ),
@@ -141,20 +139,19 @@ class _MealCardScreenState extends State<MealCardScreen> {
         children: [
           _LegendItem(
             color: UserColors.primaryColor,
-            text: "Employee",
+            text: "Self",
           ),
           _LegendItem(
             color: Colors.orange.shade600,
             text: "Guest",
           ),
-          if (isDriverVisible)
-            _LegendItem(
-              color: Colors.green.shade600,
-              text: "Driver",
-            ),
           const _LegendItem(
             color: Colors.red,
             text: "Closed",
+          ),
+          _LegendItem(
+            color: Colors.grey.shade600,
+            text: "Weekend/Kitchen Off",
           ),
         ],
       ),
@@ -180,51 +177,34 @@ class _MealCardScreenState extends State<MealCardScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Text(
-              "SUMMARY",
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade600,
-                letterSpacing: 0.5,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8.0,
-              runSpacing: 2.0,
-              alignment: WrapAlignment.spaceEvenly,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                if (employee > 0)
-                  _SummaryItem(
-                    label: "Employee",
-                    value: employee,
-                    color: UserColors.primaryColor,
-                  ),
-                if (guest > 0)
-                  _SummaryItem(
-                    label: "Guest",
-                    value: guest,
-                    color: Colors.orange.shade600,
-                  ),
-                if (isDriverVisible && driver > 0)
-                  _SummaryItem(
-                    label: "Driver",
-                    value: driver,
-                    color: Colors.green.shade600,
-                  ),
-                if (closedMeals > 0)
-                  _SummaryItem(
-                    label: "Closed",
-                    value: closedMeals,
-                    color: Colors.red.shade600,
-                  ),
                 _SummaryItem(
-                  label: "Total",
-                  value: total,
+                  label: "Self",
+                  value: employee,
+                  color: UserColors.primaryColor,
+                ),
+                _SummaryItem(
+                  label: "Guest",
+                  value: guest,
+                  color: Colors.orange.shade600,
+                ),
+                _SummaryItem(
+                  label: "Meal Count",
+                  value: employee + guest,
                   color: Colors.blue.shade800,
                   isTotal: true,
                 ),
+                _SummaryItem(
+                  label: "Closed",
+                  value: closedMeals,
+                  color: Colors.red.shade600,
+                ),
+                _SummaryItem(
+                    label: "W/KO",
+                    value: kitchenOffWeekends,
+                    color: Colors.grey.shade600),
               ],
             ),
           ],
@@ -235,20 +215,18 @@ class _MealCardScreenState extends State<MealCardScreen> {
 }
 
 class _MealCardItem extends StatelessWidget {
-  final MealCardModel item;
-  final bool isDriverVisible;
+  final MealCardResonse item;
 
   const _MealCardItem({
     required this.item,
-    required this.isDriverVisible,
   });
 
   String _getStatusText(String status) {
     switch (status) {
       case 'C':
         return "Closed";
-      case 'H':
-        return "Holiday";
+      case 'KO':
+        return "Kitchen off";
       case 'W':
         return "Weekend";
       case 'A':
@@ -264,11 +242,12 @@ class _MealCardItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isClosed = item.statusText == 'C';
-    final isHolidayOrWeekend = item.statusText == 'H' || item.statusText == 'W';
+    final isKitchenOffOrWeekend =
+        item.statusText == 'KO' || item.statusText == 'W';
 
     final dayColor = isClosed
         ? Colors.red
-        : isHolidayOrWeekend
+        : isKitchenOffOrWeekend
             ? Colors.grey.shade600
             : UserColors.primaryColor;
 
@@ -305,7 +284,7 @@ class _MealCardItem extends StatelessWidget {
                         child: Column(
                           children: [
                             Text(
-                              Utils.formatDate(item.issueDate!,
+                              Utils.formatDate(item.mealDate,
                                   format: "dd MMM yyyy"),
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: dayColor,
@@ -314,7 +293,7 @@ class _MealCardItem extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              DateFormat("EEEE").format(item.issueDate!),
+                              DateFormat("EEEE").format(item.mealDate),
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: Colors.grey.shade600,
                                 fontSize: 12,
@@ -328,23 +307,17 @@ class _MealCardItem extends StatelessWidget {
                           child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          if (item.employee! > 0)
+                          if (item.mealCount > 0)
                             _MealCountBox(
-                              label: "Employee",
-                              count: item.employee!,
+                              label: "Self",
+                              count: item.mealCount,
                               color: UserColors.primaryColor,
                             ),
-                          if (item.guest! > 0)
+                          if (item.guestCount > 0)
                             _MealCountBox(
                               label: "Guest",
-                              count: item.guest!,
+                              count: item.guestCount,
                               color: Colors.orange.shade600,
-                            ),
-                          if (isDriverVisible && item.driver! > 0)
-                            _MealCountBox(
-                              label: "Driver",
-                              count: item.driver!,
-                              color: Colors.green.shade600,
                             ),
                         ],
                       )),
@@ -361,7 +334,7 @@ class _MealCardItem extends StatelessWidget {
                     borderRadius: BorderRadius.circular(3.0),
                   ),
                   child: Text(
-                    _getStatusText(item.statusText!),
+                    _getStatusText(item.statusText),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
@@ -403,7 +376,7 @@ class _LegendItem extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           text,
-          style: const TextStyle(fontSize: 12),
+          style: const TextStyle(fontSize: 14),
         ),
       ],
     );
@@ -471,8 +444,8 @@ class _SummaryItem extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 14.0,
+            padding: EdgeInsets.symmetric(
+              horizontal: isTotal ? 28.0 : 14.0,
               vertical: 4,
             ),
             decoration: BoxDecoration(

@@ -1,55 +1,90 @@
-import 'package:peoplepro/services/canteen_service.dart';
+import 'package:peoplepro/services/canteen_service2.dart';
+import 'package:peoplepro/utils/canteen_session.dart';
 import 'package:peoplepro/utils/colors.dart';
 import 'package:peoplepro/utils/message_box.dart';
-import 'package:peoplepro/utils/session.dart';
 import 'package:peoplepro/utils/settings.dart';
 import 'package:peoplepro/utils/utils.dart';
 import 'package:peoplepro/widgets/background_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:peoplepro/widgets/dropdown_button_widget.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
-class MealClosingScreen extends StatefulWidget {
-  const MealClosingScreen({Key? key}) : super(key: key);
+class MealCloseScreen extends StatefulWidget {
+  final List<DateTime> mealClosedDates;
+  const MealCloseScreen({Key? key, required this.mealClosedDates})
+      : super(key: key);
 
   @override
-  State<MealClosingScreen> createState() => _MealClosingScreenState();
+  State<MealCloseScreen> createState() => _MealCloseScreenState();
 }
 
-class _MealClosingScreenState extends State<MealClosingScreen> {
-  final List<DropdownItem> _reuestTypes = [
-    DropdownItem("Employee (Self)", "1")
-  ];
-
-  Key _pickerKey = UniqueKey();
-  int _requestTypeId = 1;
+class _MealCloseScreenState extends State<MealCloseScreen> {
+  final Key _pickerKey = UniqueKey();
 
   @override
   void initState() {
     super.initState();
-
-    if (Settings.userAccess.driverId!.isNotEmpty) {
-      _reuestTypes.add(DropdownItem("Driver", "2"));
-    }
   }
 
   void submitRequest() async {
     Utils.showLoadingIndicator(context);
 
-    var empCode =
-        _requestTypeId == 1 ? Session.empCode : Settings.userAccess.driverId!;
-    var output = await CanteenService.mealClosing(empCode, _selectedDates);
+    try {
+      int successCount = 0;
+      int failCount = 0;
+      List<String> failMessages = [];
 
-    Utils.hideLoadingIndicator(context);
+      for (final mealDate in _selectedDates) {
+        final response = await CanteenService2.mealClose(
+          CanteenSession.username,
+          mealDate,
+        );
 
-    if (output.isSuccess!) {
-      MessageBox.success(
-          context, "Meal Closing", "Meal closing request successful",
+        final formattedDate = Utils.formatDate(mealDate);
+
+        if (response == null) {
+          failCount++;
+          failMessages.add("No response for $formattedDate");
+          continue;
+        }
+
+        if (response.success) {
+          successCount++;
+        } else {
+          failCount++;
+          failMessages.add("$formattedDate: ${response.message}");
+        }
+      }
+
+      Utils.hideLoadingIndicator(context);
+
+      if (failCount == 0) {
+        MessageBox.success(
+          context,
+          "Meal Close",
+          "All $successCount meal(s) closed successfully.",
           onOkTapped: () {
-        Navigator.pop(context, true);
-      });
-    } else {
-      MessageBox.error(context, "Meal Closing", output.message!);
+            Navigator.pop(context, true);
+          },
+        );
+      } else {
+        final summary =
+            "Success: $successCount\nFailed: $failCount\n\n${failMessages.join('\n')}";
+        if (successCount > 0) {
+          MessageBox.success(
+            context,
+            "Meal Close",
+            summary,
+            onOkTapped: () {
+              Navigator.pop(context, true);
+            },
+          );
+        } else {
+          MessageBox.error(context, "Meal Close", summary);
+        }
+      }
+    } catch (e) {
+      Utils.hideLoadingIndicator(context);
+      MessageBox.error(context, "Meal Close", "Error: ${e.toString()}");
     }
   }
 
@@ -63,71 +98,22 @@ class _MealClosingScreenState extends State<MealClosingScreen> {
   bool _isSelectableDay(DateTime day) {
     if (day.weekday == DateTime.friday) {
       return false;
-    } else if (Session.mealClosings.any((mc) =>
-        mc.issueDate! == day &&
-        mc.empId ==
-            (_requestTypeId == 2
-                ? Settings.userAccess.driverId!
-                : Session.empCode))) {
+    } else if (widget.mealClosedDates.any((mc) => mc == day)) {
       return false;
     }
     return true;
-  }
-
-  List<DateTime>? getClosingDays() {
-    var days = Session.mealClosings
-        .where((mc) =>
-            mc.empId ==
-            (_requestTypeId == 2
-                ? Settings.userAccess.driverId!
-                : Session.empCode))
-        .map((mc) => mc.issueDate)
-        .whereType<DateTime>()
-        .toList();
-    return days;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: BackgroundWidget(
-        title: "Meal Closing",
+        title: "Meal Close",
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: SingleChildScrollView(
             child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 5.0),
-                        child: Text(
-                          "Meal closing for",
-                          style: TextStyle(fontSize: 12, color: Colors.black87),
-                        ),
-                      ),
-                      DropdownButtonWidget(
-                        hint: '',
-                        items: _reuestTypes,
-                        borderColor: UserColors.primaryColor,
-                        selectedValue: _requestTypeId.toString(),
-                        style: const TextStyle(
-                            color: Colors.black87, fontSize: 14),
-                        selectedValueChanged: (value) async {
-                          _requestTypeId = int.parse(value);
-                          _pickerKey = UniqueKey();
-                          setState(() {});
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  height: 12.0,
-                ),
                 SfDateRangePicker(
                   key: _pickerKey,
                   minDate: Settings.serverToday.add(const Duration(days: 1)),
@@ -135,13 +121,12 @@ class _MealClosingScreenState extends State<MealClosingScreen> {
                   onSelectionChanged: _onSelectionChanged,
                   monthViewSettings: DateRangePickerMonthViewSettings(
                     weekendDays: const [5],
-                    specialDates: getClosingDays(),
+                    specialDates: widget.mealClosedDates,
                   ),
                   monthCellStyle: DateRangePickerMonthCellStyle(
                     specialDatesDecoration: BoxDecoration(
-                        color: Colors.grey.shade400, shape: BoxShape.circle),
-                    specialDatesTextStyle:
-                        const TextStyle(color: Colors.black87),
+                        color: UserColors.primaryColor, shape: BoxShape.circle),
+                    specialDatesTextStyle: const TextStyle(color: Colors.white),
                     todayCellDecoration:
                         const BoxDecoration(shape: BoxShape.circle),
                   ),
@@ -150,7 +135,9 @@ class _MealClosingScreenState extends State<MealClosingScreen> {
                   selectionColor: Colors.red,
                 ),
                 const SizedBox(height: 40.0),
-                SizedBox(
+                Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(horizontal: 20.0),
                     child: ElevatedButton(
                         style: ButtonStyle(
                             backgroundColor: MaterialStateProperty.all<Color>(
@@ -166,7 +153,7 @@ class _MealClosingScreenState extends State<MealClosingScreen> {
                             ? null
                             : () => submitRequest(),
                         child: const Text(
-                          "Submit",
+                          "Submit Request",
                         ))),
               ],
             ),

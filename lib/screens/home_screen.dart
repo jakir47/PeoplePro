@@ -8,12 +8,10 @@ import 'package:peoplepro/screens/attendance_screen.dart';
 import 'package:peoplepro/screens/bus_late_screen.dart';
 import 'package:peoplepro/screens/change_password_screen.dart';
 import 'package:peoplepro/screens/control_panel_screen.dart';
-import 'package:peoplepro/screens/e-canteen/canteen_admin_screen.dart';
-import 'package:peoplepro/screens/e-canteen/canteen_home_screen2.dart';
+import 'package:peoplepro/screens/e-canteen/canteen_home_screen.dart';
 import 'package:peoplepro/screens/e-directory/directory_screen.dart';
 import 'package:peoplepro/screens/e-transport/tracker_demo.dart';
 import 'package:peoplepro/screens/employee_attendance_screen.dart';
-import 'package:peoplepro/screens/employee_directory_search_screen.dart';
 import 'package:peoplepro/screens/employee_poll_screen.dart';
 import 'package:peoplepro/screens/notice_viewer_screen.dart';
 import 'package:peoplepro/screens/holiday_list_screen.dart';
@@ -384,9 +382,7 @@ class HomeScreenState extends State<HomeScreen> {
               Navigator.of(context).push(MaterialPageRoute(
                   builder: (context) => const EmployeeAttendanceScreen()));
             } else if (index == 4) {
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-                return const CanteenAdminScreen();
-              }));
+              //
             } else if (index == 5) {
               Navigator.of(context).push(MaterialPageRoute(
                   builder: (context) => const ProfileUpdateScreen()));
@@ -807,7 +803,7 @@ class HomeScreenState extends State<HomeScreen> {
                                       Navigator.of(context).push(
                                           MaterialPageRoute(
                                               builder: (context) =>
-                                                  const CanteenHomeScreen2()));
+                                                  const CanteenHomeScreen()));
                                     },
                                   ),
                                   IconButtonWidget(

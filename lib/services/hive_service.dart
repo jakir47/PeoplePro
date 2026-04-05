@@ -22,7 +22,6 @@ class HiveService {
           'ApiKey': Settings.apiKey,
         },
       );
-      ;
       if (response.statusCode == 200) {
         var decodedText =
             json.decode(response.body).cast<Map<String, dynamic>>();

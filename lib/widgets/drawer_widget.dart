@@ -43,14 +43,14 @@ class DrawerWidget extends StatelessWidget {
                               1,
                               newFeature: true),
 
-                        if (Settings.userAccess.poll!)
-                          builedDrawerItem(
-                              context,
-                              'e-Poll  ${Settings.ePollVersion}',
-                              Icon(Icons.poll_outlined,
-                                  size: 20.0, color: UserColors.primaryColor),
-                              2,
-                              newFeature: false),
+                        // if (Settings.userAccess.poll!)
+                        //   builedDrawerItem(
+                        //       context,
+                        //       'e-Poll  ${Settings.ePollVersion}',
+                        //       Icon(Icons.poll_outlined,
+                        //           size: 20.0, color: UserColors.primaryColor),
+                        //       2,
+                        //       newFeature: false),
 
                         if (Settings.userAccess.regularization!)
                           builedDrawerItem(
@@ -79,16 +79,16 @@ class DrawerWidget extends StatelessWidget {
                                   size: 20.0, color: UserColors.primaryColor),
                               10,
                               newFeature: false),
-                        if (Settings.userAccess.canteenManager!)
-                          builedDrawerItem(
-                            context,
-                            'e-Canteen Manager ${Settings.eCanteen}',
-                            Icon(Icons.food_bank_outlined,
-                                size: 20.0, color: UserColors.primaryColor),
-                            4,
-                            newFeature: true,
-                            labelText: "New",
-                          ),
+                        // if (Settings.userAccess.canteenManager!)
+                        //   builedDrawerItem(
+                        //     context,
+                        //     'e-Canteen Manager ${Settings.eCanteen}',
+                        //     Icon(Icons.food_bank_outlined,
+                        //         size: 20.0, color: UserColors.primaryColor),
+                        //     4,
+                        //     newFeature: true,
+                        //     labelText: "New",
+                        //   ),
 
                         builedDrawerItem(
                             context,
