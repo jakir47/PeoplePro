@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:animations/animations.dart';
 import 'package:install_plugin/install_plugin.dart';
-import 'package:peoplepro/providers/hub_provider.dart';
 import 'package:peoplepro/screens/error_screen.dart';
 import 'package:peoplepro/screens/home_screen.dart';
 import 'package:peoplepro/screens/login_screen.dart';
@@ -18,7 +17,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
-import 'package:provider/provider.dart';
 import 'package:version/version.dart';
 import 'package:http/http.dart' as http;
 
@@ -128,15 +126,6 @@ class _SplashScreenState extends State<SplashScreen> {
         return;
       }
     }
-
-    var notificationId = await Utils.storage.read(key: "notificationId");
-    var lastNotificationId =
-        notificationId != null ? int.parse(notificationId) : 0;
-    context.read<HubProvider>().setLastNotificationId(lastNotificationId);
-
-    var popupNotificationId =
-        await Utils.storage.read(key: "popupNotificationId") ?? 0;
-    Settings.popupNotificationId = int.parse(popupNotificationId.toString());
 
     var isConfettiBlast = await Utils.storage.read(key: "isConfettiBlast") ?? 1;
     Settings.isConfettiBlast = isConfettiBlast == 1;

@@ -1,7 +1,5 @@
 import 'package:peoplepro/screens/attendance_location_screen.dart';
 import 'package:peoplepro/screens/attendance_location_zone_screen.dart';
-import 'package:peoplepro/screens/cache_manager_screen.dart';
-import 'package:peoplepro/screens/hub_users_screen.dart';
 import 'package:peoplepro/screens/login_tester_screen.dart';
 import 'package:peoplepro/screens/notification_screen.dart';
 import 'package:peoplepro/screens/user_access_screen.dart';
@@ -106,58 +104,6 @@ class _ControlPanelScreenState extends State<ControlPanelScreen> {
                       onTap: () {
                         Navigator.of(context).push(MaterialPageRoute(
                             builder: (context) => const NotificationScreen()));
-                      },
-                    ),
-                  ),
-                if (Session.empCode == "047785")
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4.0),
-                    child: InkWell(
-                      child: Container(
-                          decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(
-                                4.0,
-                              )),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12.0, vertical: 6.0),
-                          child: Row(children: [
-                            Icon(
-                              Icons.supervised_user_circle_outlined,
-                              color: UserColors.primaryColor,
-                            ),
-                            const SizedBox(width: 10),
-                            const Text("Hub User")
-                          ])),
-                      onTap: () {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => const HubUsersScreen()));
-                      },
-                    ),
-                  ),
-                if (Session.empCode == "047785")
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4.0),
-                    child: InkWell(
-                      child: Container(
-                          decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(
-                                4.0,
-                              )),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12.0, vertical: 6.0),
-                          child: Row(children: [
-                            Icon(
-                              Icons.cached,
-                              color: UserColors.primaryColor,
-                            ),
-                            const SizedBox(width: 10),
-                            const Text("Cache Manager")
-                          ])),
-                      onTap: () {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => const CacheManagerScreen()));
                       },
                     ),
                   ),

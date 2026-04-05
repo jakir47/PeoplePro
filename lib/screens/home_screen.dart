@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:peoplepro/providers/hub_provider.dart';
 import 'package:peoplepro/screens/about_screen.dart';
 import 'package:peoplepro/screens/approval_screen.dart';
 import 'package:peoplepro/screens/attendance_regularization_screen.dart';
@@ -10,7 +9,6 @@ import 'package:peoplepro/screens/change_password_screen.dart';
 import 'package:peoplepro/screens/control_panel_screen.dart';
 import 'package:peoplepro/screens/e-canteen/canteen_home_screen.dart';
 import 'package:peoplepro/screens/e-directory/directory_screen.dart';
-import 'package:peoplepro/screens/e-transport/tracker_demo.dart';
 import 'package:peoplepro/screens/employee_attendance_screen.dart';
 import 'package:peoplepro/screens/employee_poll_screen.dart';
 import 'package:peoplepro/screens/notice_viewer_screen.dart';
@@ -20,7 +18,6 @@ import 'package:peoplepro/screens/leave_application_list_screen.dart';
 import 'package:peoplepro/screens/login_screen.dart';
 import 'package:peoplepro/screens/my_profile_screen.dart';
 import 'package:peoplepro/screens/notice_screen.dart';
-import 'package:peoplepro/screens/notification_list_screen.dart';
 import 'package:peoplepro/screens/outstation_list_screen.dart';
 import 'package:peoplepro/screens/payslip_screen.dart';
 import 'package:peoplepro/screens/policies_screen.dart';
@@ -65,29 +62,11 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    context.read<HubProvider>().disconnect();
     _controllerStarBlast.dispose();
     super.dispose();
   }
 
   void initialize() async {
-    context.read<HubProvider>().buildConnection();
-
-    var userLastNotificationId = context.read<HubProvider>().lastNotificationId;
-
-    if (userLastNotificationId == 0) {
-      userLastNotificationId = appLastNotificationId - 1;
-    }
-
-    List<int> unseenNotificationIds = Iterable.generate(
-        appLastNotificationId - userLastNotificationId,
-        (i) => userLastNotificationId + i + 1).toList();
-
-    context.read<HubProvider>().setUnseenNotificationIds(unseenNotificationIds);
-    context.read<HubProvider>().setLastNotificationId(appLastNotificationId);
-    // Utils.addValueToStorage("notificationId", "0");
-    checkModalNotification();
-
     var joiningDate = DateTime.parse(
         Session.userData.userInformation?.joiningDate ?? "2020-11-10T00:00:00");
 
@@ -354,8 +333,6 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var isConnected = context.watch<HubProvider>().isConnected;
-    var notificationCount = context.watch<HubProvider>().notificationIds.length;
     return Scaffold(
       key: drawerKey,
       drawer: Drawer(
@@ -368,7 +345,7 @@ class HomeScreenState extends State<HomeScreen> {
             if (index == 0) {
               await Utils.removeRemember().whenComplete(() {
                 Log.createLogout();
-                context.read<HubProvider>().disconnect();
+
                 Utils.navigateTo(context, const LoginScreen(),
                     pushReplacement: true);
               });
@@ -387,8 +364,7 @@ class HomeScreenState extends State<HomeScreen> {
               Navigator.of(context).push(MaterialPageRoute(
                   builder: (context) => const ProfileUpdateScreen()));
             } else if (index == 6) {
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => const NotificationListScreen()));
+              //
             } else if (index == 7) {
               Navigator.of(context).push(MaterialPageRoute(
                   builder: (context) => const NoticeScreen()));
@@ -399,8 +375,7 @@ class HomeScreenState extends State<HomeScreen> {
               Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) => const AboutScreen()));
             } else if (index == 10) {
-              Navigator.of(context)
-                  .push(MaterialPageRoute(builder: (context) => TrackerDemo()));
+              //
             } else if (index == 11) {
               Navigator.of(context).push(MaterialPageRoute(
                   builder: (context) => const ChangePasswordScreen()));
@@ -435,24 +410,17 @@ class HomeScreenState extends State<HomeScreen> {
                   color: UserColors.primaryColor,
                 ),
                 onPressed: () {
-                  if (notificationCount > 0) {
-                    Utils.addValueToStorage(
-                        "notificationId", appLastNotificationId.toString());
-                    Utils.navigateTo(context, const NotificationListScreen());
-                  }
+                  //
                 },
               ),
               Visibility(
-                visible: notificationCount > 0,
+                visible: false,
                 child: Positioned(
                   top: 2.0,
                   right: 0.0,
                   child: InkWell(
                     onTap: () {
-                      if (notificationCount > 0) {
-                        Utils.navigateTo(
-                            context, const NotificationListScreen());
-                      }
+                      //
                     },
                     child: Container(
                       width: 20.0,
@@ -463,9 +431,9 @@ class HomeScreenState extends State<HomeScreen> {
                         color: Colors.red,
                         borderRadius: BorderRadius.circular(50.0),
                       ),
-                      child: Text(
-                        notificationCount.toString(),
-                        style: const TextStyle(
+                      child: const Text(
+                        "99+",
+                        style: TextStyle(
                             color: Colors.white,
                             fontSize: 10,
                             fontWeight: FontWeight.bold),
@@ -523,12 +491,9 @@ class HomeScreenState extends State<HomeScreen> {
                                       child: Padding(
                                         padding: const EdgeInsets.all(2.0),
                                         child: Container(
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: isConnected
-                                                ? Colors.green
-                                                : Colors.red,
-                                          ),
+                                          decoration: const BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: Colors.green),
                                           child: Container(),
                                         ),
                                       ),
@@ -791,8 +756,7 @@ class HomeScreenState extends State<HomeScreen> {
                                   ),
                                   IconButtonWidget(
                                     isLocked: !Settings.userAccess.canteen!,
-                                    label: "e-Canteen 2.0",
-                                    isUpdated: true,
+                                    label: "e-Canteen 2.1",
                                     icon: const Icon(
                                       Icons.food_bank_rounded,
                                       color: Colors.indigo,

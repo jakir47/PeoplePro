@@ -1,7 +1,7 @@
-import 'package:peoplepro/services/canteen_service2.dart';
-import 'package:peoplepro/utils/canteen_session.dart';
+import 'package:peoplepro/services/canteen_service.dart';
 import 'package:peoplepro/utils/colors.dart';
 import 'package:peoplepro/utils/message_box.dart';
+import 'package:peoplepro/utils/session.dart';
 import 'package:peoplepro/utils/settings.dart';
 import 'package:peoplepro/utils/utils.dart';
 import 'package:peoplepro/widgets/background_widget.dart';
@@ -34,8 +34,8 @@ class _MealCloseScreenState extends State<MealCloseScreen> {
       List<String> failMessages = [];
 
       for (final mealDate in _selectedDates) {
-        final response = await CanteenService2.mealClose(
-          CanteenSession.username,
+        final response = await CanteenService.mealClose(
+          Session.empCode,
           mealDate,
         );
 
@@ -137,7 +137,7 @@ class _MealCloseScreenState extends State<MealCloseScreen> {
                 const SizedBox(height: 40.0),
                 Container(
                     width: double.infinity,
-                    padding: EdgeInsets.symmetric(horizontal: 20.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: ElevatedButton(
                         style: ButtonStyle(
                             backgroundColor: MaterialStateProperty.all<Color>(

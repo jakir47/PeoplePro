@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:peoplepro/services/canteen_service2.dart';
-import 'package:peoplepro/utils/canteen_session.dart';
+import 'package:peoplepro/services/canteen_service.dart';
 import 'package:peoplepro/utils/colors.dart';
+import 'package:peoplepro/utils/session.dart';
 import 'package:peoplepro/utils/settings.dart';
 import 'package:peoplepro/utils/utils.dart';
 import 'package:peoplepro/widgets/background_widget.dart';
@@ -46,8 +46,8 @@ class _MealCardScreenState extends State<MealCardScreen> {
       Utils.showLoadingIndicator(context);
       final fromDate = Utils.formatDate(_fromDate!, format: "yyyy-MM-dd");
       final toDate = Utils.formatDate(_toDate!, format: "yyyy-MM-dd");
-      _mealCardItems = await CanteenService2.getMealCard(
-          CanteenSession.username, fromDate, toDate);
+      _mealCardItems =
+          await CanteenService.getMealCard(Session.empCode, fromDate, toDate);
 
       for (var item in _mealCardItems) {
         employee += item.mealCount;

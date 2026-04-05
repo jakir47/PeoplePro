@@ -36,8 +36,6 @@ class Settings {
   static DateTime eDirectoryLastUpdated = DateTime.now();
   static String eAttendanceMonitor = "1.0.1";
   static String eDirectoryVersion = "1.5.0";
-  static String ePollVersion = "1.1.0";
-  static String eCanteen = "2.0.1";
   static String eTransport = "1.0.1";
 
   static bool debug = false;

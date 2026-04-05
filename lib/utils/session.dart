@@ -13,4 +13,5 @@ class Session {
   static String operatingLocation = "";
   static List<MealClosingModel> mealClosings = [];
   static int approvalPendingCount = 0;
+  static bool isMealClosedToday = false;
 }

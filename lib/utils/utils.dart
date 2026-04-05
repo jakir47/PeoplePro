@@ -11,7 +11,7 @@ import 'dart:ui' as ui;
 import 'package:peoplepro/services/http.dart';
 import 'package:peoplepro/services/security_service.dart';
 import 'package:peoplepro/services/user_service.dart';
-import 'package:peoplepro/utils/canteen_session.dart';
+
 import 'package:peoplepro/utils/log.dart';
 import 'package:peoplepro/utils/session.dart';
 import 'package:peoplepro/utils/settings.dart';
@@ -116,11 +116,6 @@ class Utils {
       Session.department = Session.userData.userInformation!.departmentName!;
       Session.operatingLocation =
           Session.userData.userInformation!.operatingLocation!;
-
-      // BEGIN Canteen service
-      CanteenSession.username = userId;
-      CanteenSession.password = password;
-      // END Canteen service
 
       if (Session.userData.userInformation!.photo != null) {
         Session.empImage = const Base64Decoder()

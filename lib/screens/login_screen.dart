@@ -1,5 +1,6 @@
-import 'dart:convert';
+import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:peoplepro/screens/error_screen.dart';
 import 'package:peoplepro/screens/home_screen.dart';
 import 'package:peoplepro/services/user_service.dart';
@@ -204,29 +205,30 @@ class LoginScreenState extends State<LoginScreen> {
                                           ? 'Enter Your Password'
                                           : null,
                                 ),
-                                Row(
-                                  children: [
-                                    SizedBox(
-                                      width: 30,
-                                      child: Switch(
-                                        value: isRemembered,
-                                        activeColor: UserColors.primaryColor,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            isRemembered = value;
-                                          });
-                                        },
+                                if (Platform.isAndroid)
+                                  Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 30,
+                                        child: Switch(
+                                          value: isRemembered,
+                                          activeColor: UserColors.primaryColor,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              isRemembered = value;
+                                            });
+                                          },
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Text(
-                                      "Remember ID",
-                                      style: TextStyle(
-                                          color: Colors.grey.shade800,
-                                          fontSize: 12),
-                                    )
-                                  ],
-                                ),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        "Remember ID",
+                                        style: TextStyle(
+                                            color: Colors.grey.shade800,
+                                            fontSize: 12),
+                                      )
+                                    ],
+                                  ),
                                 SizedBox(
                                     width: double.infinity,
                                     child: ElevatedButton(
@@ -286,8 +288,10 @@ class LoginScreenState extends State<LoginScreen> {
                                         highlightColor:
                                             const Color.fromARGB(0, 43, 0, 0),
                                         onTap: () {
-                                          // userIdController.text = "052120";
-                                          // passwordController.text = "bgi052120";
+                                          if (kDebugMode) {
+                                            userIdController.text = "047785";
+                                            passwordController.text = "jakir87";
+                                          }
                                         },
                                         child: Padding(
                                           padding: const EdgeInsets.symmetric(

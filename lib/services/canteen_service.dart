@@ -1,24 +1,25 @@
 import 'dart:convert';
-import 'package:peoplepro/models/e-canteen/meal_card_model.dart';
-import 'package:peoplepro/models/e-canteen/meal_closing_model.dart';
-import 'package:peoplepro/models/e-canteen/meal_closing_response_model.dart';
-import 'package:peoplepro/utils/session.dart';
-import 'package:peoplepro/utils/settings.dart';
 import 'package:http/http.dart' as http;
+import 'package:peoplepro/utils/settings.dart';
 
 class CanteenService {
-  static Future<String> generateToken() async {
-    try {
-      var uri = Uri.parse("${Settings.apiUrl}/canteen/token");
-      var bodyData = jsonEncode(
-          {"UserId": Session.empCode, "DeviceId": Settings.deviceId});
+  static String apiUrl = "http://182.163.117.72:5600/api/v1";
 
-      final response = await http.post(uri,
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: bodyData);
+  static Map<String, String> getHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': 'Bearer ${Settings.jwtToken}',
+    };
+  }
+
+  static Future<String> printMealToken(String username, String deviceId) async {
+    try {
+      var uri = Uri.parse("$apiUrl/print-meal-token");
+      var bodyData = jsonEncode({"username": username, "deviceId": deviceId});
+
+      final response =
+          await http.post(uri, headers: getHeaders(), body: bodyData);
 
       if (response.statusCode == 200) {
         return "Success";
@@ -32,81 +33,28 @@ class CanteenService {
     }
   }
 
-  static Future<MealClosingResponseModel> mealClosing(
-      String userId, List<DateTime> issueDates) async {
-    var output = MealClosingResponseModel(
-        isSuccess: false, message: "Cannot fulfill your closing request.");
+  static Future<List<CanteenMealCloseListModel>> getMealClosedList(
+      String username) async {
+    List<CanteenMealCloseListModel> lines = [];
     try {
-      var uri = Uri.parse("${Settings.apiUrl}/canteen/meal/closing");
+      var url = "$apiUrl/meal-closed-list?username=$username";
 
-      var issueDatesFormatted =
-          issueDates.map((date) => date.toIso8601String()).toList();
-
-      var data = {"EmpId": userId, "IssueDates": issueDatesFormatted};
-
-      var bodyData = jsonEncode(data);
-
-      final response = await http.post(uri,
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: bodyData);
-
-      if (response.statusCode == 200) {
-        var jsonText = jsonDecode(response.body);
-        output = MealClosingResponseModel.fromJson(jsonText);
-      }
-    } catch (e) {
-      //
-    }
-    return output;
-  }
-
-  static Future<bool> mealClosingCancel(String userId, int id) async {
-    try {
-      var uri = Uri.parse("${Settings.apiUrl}/canteen/meal/closing/cancel");
-      var data = {"EmpId": userId, "id": id};
-      var bodyData = jsonEncode(data);
-
-      final response = await http.put(uri,
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: bodyData);
-
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        return false;
-      }
-    } catch (e) {
-      return false;
-    }
-  }
-
-  static Future<List<MealClosingModel>> getMealClosingList(
-      String userId) async {
-    List<MealClosingModel> lines = [];
-    try {
-      var url = "${Settings.apiUrl}/canteen/meal/closing/list?userId=$userId";
+      print(url);
       var uri = Uri.parse(url);
 
       final response = await http.get(
         uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'ApiKey': Settings.apiKey,
-        },
+        headers: getHeaders(),
       );
 
+      print(response.statusCode);
+      print(response.body);
       if (response.statusCode == 200) {
         var decodedText =
             json.decode(response.body).cast<Map<String, dynamic>>();
         lines = decodedText
-            .map<MealClosingModel>((json) => MealClosingModel.fromJson(json))
+            .map<CanteenMealCloseListModel>(
+                (json) => CanteenMealCloseListModel.fromJson(json))
             .toList();
 
         return lines;
@@ -118,28 +66,68 @@ class CanteenService {
     }
   }
 
-  static Future<List<MealCardModel>> getMealCard(
-      String fromDate, String toDate) async {
-    List<MealCardModel> items = [];
+  static Future<MealCloseResponse?> mealClose(
+      String username, DateTime mealDate) async {
+    try {
+      var url = "$apiUrl/meal-close";
+      var uri = Uri.parse(url);
+      var bodyData = jsonEncode(
+          {"username": username, "mealDate": mealDate.toIso8601String()});
+      final response =
+          await http.post(uri, headers: getHeaders(), body: bodyData);
+
+      if (response.statusCode == 200) {
+        var json = jsonDecode(response.body);
+        var data = MealCloseResponse.fromJson(json);
+        return data;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static Future<MealCancelResponse?> mealCancel(
+      String username, DateTime mealDate) async {
+    try {
+      var url = "$apiUrl/meal-cancel";
+      var uri = Uri.parse(url);
+      var bodyData = jsonEncode(
+          {"username": username, "mealDate": mealDate.toIso8601String()});
+      final response =
+          await http.post(uri, headers: getHeaders(), body: bodyData);
+
+      if (response.statusCode == 200) {
+        var json = jsonDecode(response.body);
+        var data = MealCancelResponse.fromJson(json);
+        return data;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static Future<List<MealCardResonse>> getMealCard(
+      String username, String startDate, String endDate) async {
+    List<MealCardResonse> items = [];
     try {
       var url =
-          "${Settings.apiUrl}/canteen/meal/card?userId=${Session.empCode}&fromDate=$fromDate&toDate=$toDate";
+          "$apiUrl/meal-card?username=$username&startDate=$startDate&endDate=$endDate";
 
       var uri = Uri.parse(url);
       final response = await http.get(
         uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'ApiKey': Settings.apiKey,
-        },
+        headers: getHeaders(),
       );
 
       if (response.statusCode == 200) {
         var decodedText =
             json.decode(response.body).cast<Map<String, dynamic>>();
         items = decodedText
-            .map<MealCardModel>((json) => MealCardModel.fromJson(json))
+            .map<MealCardResonse>((json) => MealCardResonse.fromJson(json))
             .toList();
 
         return items;
@@ -149,5 +137,155 @@ class CanteenService {
     } catch (e) {
       return items;
     }
+  }
+}
+
+class CanteenLoginModel {
+  final String name;
+  final int roleId;
+  final String roleName;
+  final bool isMealClosedToday;
+  final String jwtToken;
+
+  CanteenLoginModel({
+    required this.name,
+    required this.roleId,
+    required this.roleName,
+    required this.isMealClosedToday,
+    required this.jwtToken,
+  });
+
+  factory CanteenLoginModel.fromJson(Map<String, dynamic> json) {
+    return CanteenLoginModel(
+      name: json['name'] ?? '',
+      roleId: json['roleId'] ?? 0,
+      roleName: json['roleName'] ?? '',
+      isMealClosedToday: json['isMealClosedToday'] ?? false,
+      jwtToken: json['jwtToken'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'roleId': roleId,
+      'roleName': roleName,
+      'isMealClosedToday': isMealClosedToday,
+      'jwtToken': jwtToken,
+    };
+  }
+}
+
+class CanteenMealCloseListModel {
+  final DateTime mealDate;
+  final bool isCancellable;
+
+  CanteenMealCloseListModel(
+      {required this.mealDate, required this.isCancellable});
+
+  factory CanteenMealCloseListModel.fromJson(Map<String, dynamic> json) {
+    return CanteenMealCloseListModel(
+      isCancellable: json['isCancellable'] ?? false,
+      mealDate: json['mealDate'] != null
+          ? DateTime.tryParse(json['mealDate'].toString()) ?? DateTime(1900)
+          : DateTime(1900),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'isCancellable': isCancellable,
+      'mealDate': mealDate.toIso8601String(),
+    };
+  }
+}
+
+class MealCloseResponse {
+  final bool success;
+  final String message;
+
+  MealCloseResponse({
+    required this.success,
+    required this.message,
+  });
+
+  factory MealCloseResponse.fromJson(Map<String, dynamic> json) {
+    return MealCloseResponse(
+      success: json['success'] ?? false,
+      message: json['message'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'success': success,
+      'message': message,
+    };
+  }
+}
+
+class MealCancelResponse {
+  final bool success;
+  final String message;
+
+  MealCancelResponse({
+    required this.success,
+    required this.message,
+  });
+
+  factory MealCancelResponse.fromJson(Map<String, dynamic> json) {
+    return MealCancelResponse(
+      success: json['success'] ?? false,
+      message: json['message'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'success': success,
+      'message': message,
+    };
+  }
+}
+
+class MealCardResonse {
+  final String employeeId;
+  final DateTime mealDate;
+  final int mealCount;
+  final int guestCount;
+  final bool isMealClosed;
+  final String statusText;
+
+  MealCardResonse({
+    required this.employeeId,
+    required this.mealDate,
+    required this.mealCount,
+    required this.guestCount,
+    required this.isMealClosed,
+    required this.statusText,
+  });
+
+  factory MealCardResonse.fromJson(Map<String, dynamic> json) {
+    return MealCardResonse(
+      employeeId: json['employeeId'] ?? '',
+      mealDate: json['mealDate'] != null
+          ? DateTime.tryParse(json['mealDate'].toString()) ?? DateTime(1900)
+          : DateTime(1900),
+      mealCount: json['mealCount'] ?? 0,
+      guestCount: json['guestCount'] ?? 0,
+      isMealClosed: json['isMealClosed'] ?? false,
+      statusText: json['statusText'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'employeeId': employeeId,
+      'mealDate': mealDate.toIso8601String(),
+      'mealCount': mealCount,
+      'guestCount': guestCount,
+      'isMealClosed': isMealClosed,
+      'statusText': statusText,
+    };
   }
 }

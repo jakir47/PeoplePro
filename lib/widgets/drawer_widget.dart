@@ -41,7 +41,7 @@ class DrawerWidget extends StatelessWidget {
                               Icon(Icons.folder_open_outlined,
                                   size: 20.0, color: UserColors.primaryColor),
                               1,
-                              newFeature: true),
+                              newFeature: false),
 
                         // if (Settings.userAccess.poll!)
                         //   builedDrawerItem(
@@ -59,7 +59,7 @@ class DrawerWidget extends StatelessWidget {
                             Icon(Icons.history_toggle_off,
                                 size: 20.0, color: UserColors.primaryColor),
                             13,
-                            newFeature: true,
+                            newFeature: false,
                             labelText: "New",
                           ),
 
@@ -71,24 +71,6 @@ class DrawerWidget extends StatelessWidget {
                                   size: 20.0, color: UserColors.primaryColor),
                               3,
                               newFeature: false),
-                        if (Settings.userAccess.transport!)
-                          builedDrawerItem(
-                              context,
-                              'e-Transport ${Settings.eTransport}',
-                              Icon(Icons.train_outlined,
-                                  size: 20.0, color: UserColors.primaryColor),
-                              10,
-                              newFeature: false),
-                        // if (Settings.userAccess.canteenManager!)
-                        //   builedDrawerItem(
-                        //     context,
-                        //     'e-Canteen Manager ${Settings.eCanteen}',
-                        //     Icon(Icons.food_bank_outlined,
-                        //         size: 20.0, color: UserColors.primaryColor),
-                        //     4,
-                        //     newFeature: true,
-                        //     labelText: "New",
-                        //   ),
 
                         builedDrawerItem(
                             context,
@@ -97,24 +79,6 @@ class DrawerWidget extends StatelessWidget {
                                 size: 20.0, color: UserColors.primaryColor),
                             5,
                             newFeature: false),
-
-                        if (Settings.userAccess.notification!)
-                          builedDrawerItem(
-                            context,
-                            'Notifications',
-                            Icon(Icons.notifications_active_outlined,
-                                size: 20.0, color: UserColors.primaryColor),
-                            6,
-                          ),
-
-                        if (Settings.userAccess.notice!)
-                          builedDrawerItem(
-                            context,
-                            'Notice',
-                            Icon(Icons.message_outlined,
-                                size: 20.0, color: UserColors.primaryColor),
-                            7,
-                          ),
 
                         if (Settings.userAccess.busLate!)
                           builedDrawerItem(

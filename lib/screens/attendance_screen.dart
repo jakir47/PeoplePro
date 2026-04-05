@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:peoplepro/models/attendance_zone_model.dart';
 import 'package:peoplepro/models/attendnace_data_model.dart';
-import 'package:peoplepro/providers/hub_provider.dart';
 import 'package:peoplepro/services/attendance_service.dart';
 import 'package:peoplepro/services/security_service.dart';
 import 'package:peoplepro/utils/log.dart';
@@ -14,7 +13,6 @@ import 'package:peoplepro/widgets/background_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
-import 'package:provider/provider.dart';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({Key? key}) : super(key: key);
@@ -372,41 +370,30 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   void _handleTap(LatLng loc) {
-    if (_isBusLateEnabled) {
-      var latLng = "${loc.latitude},${loc.longitude}";
-      context.read<HubProvider>().setBusLateCircle(latLng);
-    } else {
-      var zoneId = _circles.length + 1;
-      var circleId = CircleId('zone$zoneId');
-      var circle = Circle(
-        circleId: circleId,
-        center: LatLng(loc.latitude, loc.longitude),
-        radius: 50.0,
-        strokeWidth: 1,
-        fillColor: Colors.lightGreen.withOpacity(0.1),
-        strokeColor: Colors.lightGreen.withOpacity(0.1),
-      );
-      _circles[circleId] = circle;
+    var zoneId = _circles.length + 1;
+    var circleId = CircleId('zone$zoneId');
+    var circle = Circle(
+      circleId: circleId,
+      center: LatLng(loc.latitude, loc.longitude),
+      radius: 50.0,
+      strokeWidth: 1,
+      fillColor: Colors.lightGreen.withOpacity(0.1),
+      strokeColor: Colors.lightGreen.withOpacity(0.1),
+    );
+    _circles[circleId] = circle;
 
-      var zone = AttendanceZoneModel();
-      zone.zoneId = zoneId;
-      zone.name = "Devzone";
-      zone.latitude = loc.latitude;
-      zone.longitude = loc.longitude;
-      Session.userData.attendanceZones!.add(zone);
-    }
+    var zone = AttendanceZoneModel();
+    zone.zoneId = zoneId;
+    zone.name = "Devzone";
+    zone.latitude = loc.latitude;
+    zone.longitude = loc.longitude;
+    Session.userData.attendanceZones!.add(zone);
 
     setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    var isbusLate = context.watch<HubProvider>().isBusLate;
-    if (isbusLate) {
-      _circles.clear();
-      createAttendaceCirles();
-    }
-
     return Scaffold(
       body: BackgroundWidget(
         title: "Attendance",

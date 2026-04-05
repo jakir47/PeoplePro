@@ -1,18 +1,14 @@
 import 'dart:io';
-//import 'package:flutter_device_id/flutter_device_id.dart';
 import 'package:flutter_device_id/flutter_device_id.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:peoplepro/providers/hub_provider.dart';
 import 'package:peoplepro/screens/splash_screen.dart';
 import 'package:peoplepro/utils/api_url.dart';
 import 'package:peoplepro/utils/colors.dart';
 import 'package:peoplepro/utils/settings.dart';
-import 'package:peoplepro/utils/tracker_hub.dart';
 import 'package:peoplepro/utils/utils.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,10 +41,7 @@ Future<void> main() async {
   Settings.edition =
       await Utils.storage.read(key: "edition") ?? "Startup Edition";
 
-  runApp(MultiProvider(providers: [
-    ChangeNotifierProvider(create: (_) => HubProvider()),
-    ChangeNotifierProvider(create: (_) => TrackerHub()),
-  ], child: const StartupScreen()));
+  runApp(const StartupScreen());
 }
 
 class StartupScreen extends StatelessWidget {
